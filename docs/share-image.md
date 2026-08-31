@@ -1,0 +1,1 @@
+Built-in image-generation tool. Landscape social card for Vintech. Exact title: VINTECH. Supporting text: CLASSIC PICTURES. NEW SOUND.. Original cinematic collage with film and vinyl imagery, bold typography and generous safe margins. Asset: assets/share-preview-v1.png.

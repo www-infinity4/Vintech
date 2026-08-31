@@ -28,3 +28,6 @@ Edit app/page.tsx for pairings and app/globals.css for styling. Run `npm install
 These are planning documents, not new working sites or a wallet implementation. Album and film candidates are not blanket claims of free streaming availability or cleared reuse rights. Exact editions, source permissions and embedding availability must be checked before publishing a new pairing. No film or commercial music files are redistributed in this repository.
 
 Source snapshot: Vintech production version 2, commit 419f5e269703c245aed0f5636f3ad2eac418a09f. Existing third-party dependency notices are retained; this repository does not grant rights to third-party media.
+
+## Sharing and unified wallet
+A shared wallet bar offers native sharing, copy-link fallback, and an X post composer. Confirmed sharing earns 0.1 StarCoin once per site per wallet. Opening a composer or copying a link alone earns nothing; manual confirmation is self-reported. Credits use the same browser-local wallet as StarQuest’s unified-wallet integration, not its separate cloud ledger. Pending claims retry on return. Social preview metadata is in index.html and the card is assets/share-preview-v1.png.
