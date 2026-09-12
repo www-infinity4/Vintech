@@ -28,7 +28,7 @@ function Theater({index,onNext}:{index:number;onNext:()=>void}){
  const [started,setStarted]=useState(false),[playing,setPlaying]=useState(false),[ended,setEnded]=useState(false);
  const [filmError,setFilmError]=useState(""),[musicError,setMusicError]=useState(""),[status,setStatus]=useState("");
  function pause(){native.current?.pause();album.current?.pauseVideo();setPlaying(false);if(!album.current)setRevision(v=>v+1);}
- function finished(){pause();setEnded(true);setStatus(index===0?"First feature finished. Continue to Dick Tracy below.":"Feature finished. Restart anytime.");}
+ function finished(){pause();setEnded(true);setStatus(index===0?"First feature finished. Continue to Dick Tracy below.":"Feature finished. Re-sync anytime to restart both sources together.");}
  useEffect(()=>{
   alive.current=true;let disposed=false;let player:Player|undefined;
   setConnected(false);setMusicError("");
@@ -63,18 +63,19 @@ function Theater({index,onNext}:{index:number;onNext:()=>void}){
   setEnded(false);setStarted(true);setPlaying(true);
   if(reset){if(native.current)native.current.currentTime=0;album.current?.playVideoAt(0);}else album.current?.playVideo();
   if(native.current){native.current.muted=true;native.current.play().catch(()=>{if(alive.current){pause();setStatus("The film did not start. Try its Play control, then Resume pairing.");}});}
-  setStatus(album.current?"Playback requested for both. If music is silent, tap Play inside its player. Ads and buffering can shift timing.":"Film started independently. Tap Play in the music player; shared controls are still connecting.");
+  setStatus(restart?"Re-sync requested: picture and soundtrack restarted together from the opening point.":album.current?"Playback requested for both. If music is silent, tap Play inside its player. If an ad or buffering shifts timing, tap Re-sync both.":"Film started independently. Tap Play in the music player; shared controls are still connecting.");
  }
  return <section className="theater" aria-label={feature.title+" paired with "+feature.album}>
   <div className="screen-area"><div className="strip"><span>PICTURE / {String(index+1).padStart(2,"0")}</span><span>FILM SOUND MUTED</span></div>
    <video ref={native} src={feature.mp4} controls muted playsInline preload="metadata" aria-label={feature.title} onEnded={finished} onVolumeChange={()=>{if(native.current&&!native.current.muted)native.current.muted=true;}} onError={()=>{pause();setFilmError("Internet Archive could not load this film. Reload the page or check the film source below.");}}/>
    <div className="caption"><div><p className="eyebrow">{feature.credit}</p><h2>{feature.title}</h2></div><span>FEATURE {index+1} OF 2</span></div>
   </div>
-  <aside><div className="strip"><span>ALTERNATE SOUNDTRACK</span><span>↻ REPEAT</span></div><div className="deck"><p className="eyebrow">{feature.artist}</p><h2>{feature.album}</h2><div className="album-player" ref={albumMount}/><div className="transport"><Button disabled={!!filmError} onClick={()=>playing?(pause(),setStatus(connected?"Both players paused.":"Film paused; music player reset.")):play()}>{playing?"Ⅱ Pause pairing":started?"▶ Resume pairing":"▶ Start pairing"}</Button><Button variant="outline" disabled={!!filmError} onClick={()=>play(true)}>↻ Restart</Button></div>
-   <div className="music-tools"><Button variant="outline" disabled={!connected} onClick={()=>{album.current?.nextVideo();setMusicError("");setStatus("Next song requested. Resume the movie when you’re ready.");}}>Next song →</Button><Button variant="outline" onClick={()=>{native.current?.pause();setPlaying(false);setRevision(v=>v+1);setStatus("Reloading the music player. This resets the music position.");}}>Reload music</Button></div>
+  <aside><div className="strip"><span>ALTERNATE SOUNDTRACK</span><span>↻ REPEAT</span></div><div className="deck"><p className="eyebrow">{feature.artist}</p><h2>{feature.album}</h2><div className="album-player" ref={albumMount}/><div className="transport"><Button disabled={!!filmError} onClick={()=>playing?(pause(),setStatus(connected?"Both players paused.":"Film paused; music player reset.")):play()}>{playing?"Ⅱ Pause pairing":started?"▶ Resume pairing":"▶ Start pairing"}</Button><Button variant="outline" disabled={!!filmError} onClick={()=>play(true)}>↻ Re-sync both</Button></div>
+   <div className="music-tools"><Button variant="outline" disabled={!connected} onClick={()=>{album.current?.nextVideo();setMusicError("");setStatus("Next song requested. Re-sync both if you want to return to the shared opening point.");}}>Next song →</Button><Button variant="outline" onClick={()=>{native.current?.pause();setPlaying(false);setRevision(v=>v+1);setStatus("Reloading the music player. This resets the music position; use Re-sync both afterward.");}}>Reload music</Button></div>
    {(filmError||musicError)&&<p className="error" role="alert">{filmError||musicError}</p>}<p className="message" role="status">{status||(connected?"Ready. Start the picture and its new soundtrack.":"Music player loading. Film controls are available now.")}</p>
    {ended&&index===0&&<Button className="next" onClick={onNext}>Continue to Dick Tracy →</Button>}
    <p className="fine">{feature.availability}</p>{tracks&&<p className="fine">The 11-song album sequence is assembled from individual ZZ Top uploads, including remastered versions—not a third-party playlist.</p>}
+   <p className="fine">YouTube advertising stays inside YouTube’s player. Re-sync restarts both sources after an ad or network delay rather than trying to bypass it.</p>
    <div className="source-links"><a href={feature.filmSource} target="_blank" rel="noreferrer">Film source ↗</a><a href={tracks?"https://www.youtube.com/watch?v="+tracks[0]:"https://www.youtube.com/playlist?list="+feature.playlist} target="_blank" rel="noreferrer">Music source ↗</a></div>
   </div></aside><div className="curation"><p className="eyebrow">CURATOR’S NOTE</p><p>{feature.note}</p></div>
  </section>;
@@ -86,7 +87,7 @@ export default function Home(){
   <div className="intro"><div><p className="eyebrow">TONIGHT’S DOUBLE BILL</p><h1>ROLL FILM.<br/><em>TURN IT UP.</em></h1></div><p>Comedy, crime, and a different kind of score.<br/>Two curated pairings. No uploads.</p></div>
   <nav className="bill" aria-label="Choose a feature">{features.map((f,i)=><Button key={f.title} variant="outline" className={selected===i?"bill-item selected":"bill-item"} aria-pressed={selected===i} onClick={()=>setSelected(i)}><span className="number">0{i+1}</span><span><small>{i===0?"BUSTER KEATON · 1924":"THE 1945 CLASSIC"}</small><strong>{f.title}</strong><small>{f.album} · {i===0?"Steve Winwood":"ZZ Top"}</small></span><span className="arrow">{selected===i?"SELECTED":"PLAY →"}</span></Button>)}</nav>
   <Theater key={selected} index={selected} onNext={()=>setSelected(1)}/>
-  <div className="how"><p><b>One pairing at a time.</b> Switching features stops the previous players. Use the pairing buttons for shared playback; individual player controls work separately.</p><p><b>Keep the album rolling.</b> Each playlist is set to repeat. YouTube controls availability and ads; exact synchronization is not guaranteed.</p></div>
+  <div className="how"><p><b>One pairing at a time.</b> Switching features stops the previous players. Use the pairing buttons for shared playback; individual player controls work separately.</p><p><b>Re-sync after interruptions.</b> If YouTube inserts an ad or either source buffers, tap Re-sync both to return the picture and soundtrack to the same opening point.</p></div>
   <footer><span>VINTECH</span><p>Curated by AI. Connected to source players. Made for unexpected connections.</p><span>Infinity ®</span></footer>
  </main>;
 }
